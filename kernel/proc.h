@@ -24,6 +24,7 @@ struct cpu {
   struct context context;     // swtch() here to enter scheduler().
   int noff;                   // Depth of push_off() nesting.
   int intena;                 // Were interrupts enabled before push_off()?
+  int RunnableProcesses[];
 };
 
 extern struct cpu cpus[NCPU];
@@ -85,6 +86,11 @@ enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 // Per-process state
 struct proc {
   struct spinlock lock;
+  int nextIndexRunnable;  // next Runnable proc 
+  int nextIndexSleeping;  // next Sleeping proc 
+  int nextIndexZombie;  // next Zombie proc
+  int nextIndexUnused;  // next Unused proc 
+ 
 
   // p->lock must be held when using these:
   enum procstate state;        // Process state

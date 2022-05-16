@@ -19,6 +19,7 @@ extern void forkret(void);
 static void freeproc(struct proc *p);
 
 extern char trampoline[]; // trampoline.S
+extern uint64 cas(volatile void *addr, int expected, int newval);
 
 // helps ensure that wakeups of wait()ing
 // parents are not lost. helps obey the
@@ -96,6 +97,20 @@ allocpid() {
 
   return pid;
 }
+
+
+// int
+// allocpid() {
+//   int pid;
+
+//   do
+//   {
+//     pid = nextpid;
+//   } while (cas(&nextpid, pid, pid +1));
+
+//   return pid;
+// }
+
 
 // Look in the process table for an UNUSED proc.
 // If found, initialize state required to run in the kernel,
@@ -434,10 +449,40 @@ wait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
+// void
+// scheduler(void)
+// {
+//   struct proc *p;
+//   struct cpu *c = mycpu();
+  
+//   c->proc = 0;
+//   for(;;){
+//     // Avoid deadlock by ensuring that devices can interrupt.
+//     intr_on();
+
+//     for(p = proc; p < &proc[NPROC]; p++) {
+//       acquire(&p->lock);
+//       if(p->state == RUNNABLE) {
+//         // Switch to chosen process.  It is the process's job
+//         // to release its lock and then reacquire it
+//         // before jumping back to us.
+//         p->state = RUNNING;
+//         c->proc = p;
+//         swtch(&c->context, &p->context);
+
+//         // Process is done running for now.
+//         // It should have changed its p->state before coming back.
+//         c->proc = 0;
+//       }
+//       release(&p->lock);
+//     }
+//   }
+// }
+
 void
 scheduler(void)
 {
-  struct proc *p;
+  struct proc *p = myproc();  
   struct cpu *c = mycpu();
   
   c->proc = 0;
