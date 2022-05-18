@@ -25,8 +25,10 @@ exec(char *path, char **argv)
 
   if((ip = namei(path)) == 0){
     end_op();
+
     return -1;
   }
+
   ilock(ip);
 
   // Check ELF header
@@ -41,21 +43,38 @@ exec(char *path, char **argv)
   // Load program into memory.
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
     if(readi(ip, 0, (uint64)&ph, off, sizeof(ph)) != sizeof(ph))
+    {
       goto bad;
+    }
     if(ph.type != ELF_PROG_LOAD)
       continue;
     if(ph.memsz < ph.filesz)
+    {
+
       goto bad;
+    }
     if(ph.vaddr + ph.memsz < ph.vaddr)
+    {
+
       goto bad;
+    }
     uint64 sz1;
     if((sz1 = uvmalloc(pagetable, sz, ph.vaddr + ph.memsz)) == 0)
+    {
+
       goto bad;
+    }
     sz = sz1;
     if((ph.vaddr % PGSIZE) != 0)
+    {
+
       goto bad;
+    }
     if(loadseg(pagetable, ph.vaddr, ip, ph.off, ph.filesz) < 0)
+    {
+
       goto bad;
+    }
   }
   iunlockput(ip);
   end_op();
@@ -146,9 +165,12 @@ loadseg(pagetable_t pagetable, uint64 va, struct inode *ip, uint offset, uint sz
       n = sz - i;
     else
       n = PGSIZE;
-    if(readi(ip, 0, (uint64)pa, offset+i, n) != n)
+    //  THE BUG IS HEREEEEEEEEEEEEEEEEEEEEEe
+    uint hara = readi(ip, 0, (uint64)pa, offset+i, n);
+    if(hara != n)
+    {
       return -1;
+    }
   }
-  
   return 0;
 }

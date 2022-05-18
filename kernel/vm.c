@@ -232,6 +232,7 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)
   for(a = oldsz; a < newsz; a += PGSIZE){
     mem = kalloc();
     if(mem == 0){
+
       uvmdealloc(pagetable, a, oldsz);
       return 0;
     }
@@ -242,6 +243,7 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)
       return 0;
     }
   }
+
   return newsz;
 }
 

@@ -37,6 +37,7 @@ main(void)
     }
 
     for(;;){
+      printf("ffff\n");
       // this call to wait() returns if the shell exits,
       // or if a parentless process exits.
       wpid = wait((int *) 0);
