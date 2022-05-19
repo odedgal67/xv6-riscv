@@ -1,4 +1,4 @@
-// Saved registers for kernel context switches.
+ // Saved registers for kernel context switches.
 struct context {
   uint64 ra;
   uint64 sp;
@@ -27,6 +27,7 @@ struct cpu {
   // int RunnableProcesses[];
   int firstRunnable; // first runnable proc index
   int cpuId;
+  struct spinlock head_lock;
 };
 
 extern struct cpu cpus[NCPU];
@@ -114,4 +115,6 @@ struct proc {
   // int prevProc;                // index of previous proc
   int myIndex;                 // index of proc
   int cpuIndex;                // which cpu ran this process
+  struct spinlock list_lock;
+
 };

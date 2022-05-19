@@ -31,13 +31,14 @@ main(void)
       exit(1);
     }
     if(pid == 0){
+      printf("before sh exec\n");
       exec("sh", argv);
       printf("init: exec sh failed\n");
       exit(1);
     }
 
     for(;;){
-      printf("ffff\n");
+      
       // this call to wait() returns if the shell exits,
       // or if a parentless process exits.
       wpid = wait((int *) 0);

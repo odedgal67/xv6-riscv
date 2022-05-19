@@ -165,7 +165,10 @@ main(void)
       continue;
     }
     if(fork1() == 0)
+    {
       runcmd(parsecmd(buf));
+    }
+    // printf("IN FATHER\n");
     wait(0);
   }
   exit(0);
@@ -186,6 +189,8 @@ fork1(void)
   pid = fork();
   if(pid == -1)
     panic("fork");
+
+  
   return pid;
 }
 
