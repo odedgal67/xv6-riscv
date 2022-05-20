@@ -55,7 +55,7 @@ removeFromList(int indexToRemove, int *indexOfFirstProc, struct spinlock head_lo
   // printf("In Remove    %d\n\n", indexToRemove);
   // first proc of list is removed
   if (indexToRemove >= 0 && *indexOfFirstProc == indexToRemove) {
-    printf("before remove head:\n");
+    // printf("before remove head:\n");
     // printf("first proc remove\n\n");
     curr = &proc[*indexOfFirstProc];
 
@@ -130,7 +130,7 @@ initializeCpus(){
   struct cpu* c;
   int index=0;
   for(c = cpus; c < &cpus[NCPU]; c++) {
-
+    c->numOfProcesses = 0;
     c->cpuId = index++;
     c->firstRunnable = -1; 
     initlock(&c->head_lock,"head_lock");
@@ -472,6 +472,7 @@ growproc(int n)
   sz = p->sz;
   if(n > 0){
     if((sz = uvmalloc(p->pagetable, sz, sz + n)) == 0) {
+      // printf("not good\n");
       return -1;
     }
   } else if(n < 0){
@@ -489,7 +490,7 @@ fork(void)
   int i, pid;
   struct proc *np;
   struct proc *p = myproc();
-  printf("entered fork %d\n", p->myIndex);
+  // printf("entered fork %d\n", p->myIndex);
   struct cpu *c = &cpus[p->cpuIndex];
 
 
@@ -622,7 +623,7 @@ wait(uint64 addr)
     for(np = proc; np < &proc[NPROC]; np++){
       if(np->parent == p){
         // make sure the child isn't still in exit() or swtch().
-        printf("testing wait pid=%d, parent pid=%d\n",np->myIndex,p->myIndex);
+        // printf("testing wait pid=%d, parent pid=%d\n",np->myIndex,p->myIndex);
         acquire(&np->lock);
 
         havekids = 1;
@@ -720,7 +721,7 @@ scheduler(void)
           // printAll();
           // printf("Before swtch, pid = %d\n", p->myIndex);
           swtch(&c->context, &p->context);
-          // printf("After swtch, pid = %d\n", p->myIndex);
+          // printf("After swtch pid = %d\n",p->myIndex);
           c->proc = 0;
 
         }
@@ -922,6 +923,7 @@ wakeup(void *chan)
         printf("insert wakeup runnable %d\n", p->myIndex); //delete
 
         addToList(&c->firstRunnable, p->myIndex, c->head_lock);
+        printf("after added wake runnable %d\n",p->myIndex);
       }
       release(&p -> lock);
     }
@@ -1019,4 +1021,34 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+int
+set_cpu(int cpu_num)
+{
+  struct cpu* c = mycpu();
+  struct proc* p = myproc();
+  int oldCPU = c->cpuId;
+  int newCpu = cpu_num;
+  int casRes = cas(&p->cpuIndex, oldCPU, newCpu);
+  if(casRes == 0) //success
+  {
+    removeFromList(p->myIndex,&c->firstRunnable, c->head_lock);
+    addToList(p->myIndex, &getCpuById(newCpu)->firstRunnable, getCpuById(newCpu)->head_lock);
+    yield();
+    return newCpu;
+  }
+  else //fail
+  {
+    return -1;
+  }
+}
+
+int
+get_cpu()
+{
+  struct cpu* c = mycpu();
+  if(c==0)
+    return -1;
+  return c->cpuId;  
 }

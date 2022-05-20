@@ -1763,7 +1763,7 @@ bigwrite(char *s)
 void
 manywrites(char *s)
 {
-  int nchildren = 4;
+  int nchildren = 2;
   int howmany = 30; // increase to look for deadlock
   
   for(int ci = 0; ci < nchildren; ci++){
@@ -2723,7 +2723,6 @@ countfree()
   }
   
   int pid = fork();
-
   if(pid < 0){
     printf("fork failed in countfree()\n");
     exit(1);
@@ -2734,6 +2733,9 @@ countfree()
     
     while(1){
       uint64 a = (uint64) sbrk(4096);
+      // printf("%x\n",a);
+       break;
+      // printf("%x\n", a);
       if(a == 0xffffffffffffffff){
         break;
       }
@@ -2750,9 +2752,8 @@ countfree()
 
     exit(0);
   }
-
+  printf("SSS\n");
   close(fds[1]);
-
   int n = 0;
   while(1){
     char c;
@@ -2765,7 +2766,7 @@ countfree()
       break;
     n += 1;
   }
-
+  printf("AFTER\n");
   close(fds[0]);
   wait((int*)0);
   
@@ -2912,6 +2913,7 @@ main(int argc, char *argv[])
 
   printf("usertests starting\n");
   int free0 = countfree();
+  // printf("after countfree\n\n");
   int free1 = 0;
   int fail = 0;
   for (struct test *t = tests; t->s != 0; t++) {
